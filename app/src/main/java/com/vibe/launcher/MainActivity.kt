@@ -75,10 +75,25 @@ class MainActivity : Activity() {
     private val ticker = object : Runnable {
         override fun run() {
             updateClock(); updateNetworkIcon()
-            handler.postDelayed(this, 15_000)
+            handler.postDelayed(this, 20 * 60 * 1000L)   // change every 20 minutes
         }
     }
-
+    private val wallpapers = intArrayOf(
+        R.drawable.wallpaper1,
+        R.drawable.wallpaper2,
+        R.drawable.wallpaper3,
+        R.drawable.wallpaper4,
+        R.drawable.wallpaper5,
+        R.drawable.wallpaper6
+    )
+    private var wallpaperIndex = 0
+    private val wallpaperRotator = object : Runnable {
+        override fun run() {
+            wallpaperView.setImageResource(wallpapers[wallpaperIndex])
+            wallpaperIndex = (wallpaperIndex + 1) % wallpapers.size
+            handler.postDelayed(this, 5 * 60 * 1000L)   // change every 5 minutes
+        }
+    }
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
@@ -185,8 +200,7 @@ class MainActivity : Activity() {
 
         buildFavouritesRow()
         updateClock()
-        showCachedWallpaper()
-        refreshWallpaperAsync()
+       
 
         grid.requestFocus()
     }
@@ -194,11 +208,13 @@ class MainActivity : Activity() {
     override fun onResume() {
         super.onResume()
         handler.post(ticker)   // start clock + network updates
+        handler.post(wallpaperRotator)
     }
 
     override fun onPause() {
         super.onPause()
         handler.removeCallbacks(ticker)
+        handler.removeCallbacks(wallpaperRotator)
     }
 
     // ---------------- Top bar helpers ----------------
