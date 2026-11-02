@@ -89,3 +89,4 @@ APK automatically. Download it, `adb install -r app-debug.apk`, done.
 - `minSdk` is 21, so it runs on basically any Android TV from the last decade.
 - If `Home` doesn't offer the launcher chooser, open
   Settings → Apps → Default apps → Home app, and pick Vibe Launcher.
+
