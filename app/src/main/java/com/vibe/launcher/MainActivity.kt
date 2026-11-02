@@ -78,7 +78,7 @@ class MainActivity : Activity() {
             handler.postDelayed(this, 20 * 60 * 1000L)   // change every 20 minutes
         }
     }
-    private val wallpapers = intArrayOf(
+       private val wallpapers = intArrayOf(
         R.drawable.wallpaper1,
         R.drawable.wallpaper2,
         R.drawable.wallpaper3,
@@ -86,12 +86,31 @@ class MainActivity : Activity() {
         R.drawable.wallpaper5,
         R.drawable.wallpaper6
     )
-    private var wallpaperIndex = 0
+    private val wallpaperIntervalMs = 20 * 60 * 1000L   // 20 minutes
+
+    // Random order, reshuffled every full round, derived from the clock
+    // so it never resets when you leave and come back to the launcher.
+    private fun wallpaperOrder(round: Long): MutableList<Int> {
+        val order = (0 until wallpapers.size).toMutableList()
+        order.shuffle(java.util.Random(round))
+        if (round > 0) {
+            // avoid showing the same picture twice in a row across rounds
+            val prevLast = (0 until wallpapers.size).toMutableList()
+                .also { it.shuffle(java.util.Random(round - 1)) }.last()
+            if (order[0] == prevLast) Collections.swap(order, 0, 1)
+        }
+        return order
+    }
+
     private val wallpaperRotator = object : Runnable {
         override fun run() {
-            wallpaperView.setImageResource(wallpapers[wallpaperIndex])
-            wallpaperIndex = (wallpaperIndex + 1) % wallpapers.size
-            handler.postDelayed(this, 5 * 60 * 1000L)   // change every 5 minutes
+            val now = System.currentTimeMillis()
+            val slot = now / wallpaperIntervalMs
+            val round = slot / wallpapers.size
+            val pos = (slot % wallpapers.size).toInt()
+            wallpaperView.setImageResource(wallpapers[wallpaperOrder(round)[pos]])
+            // wake up again exactly when the next 20-minute slot starts
+            handler.postDelayed(this, wallpaperIntervalMs - (now % wallpaperIntervalMs))
         }
     }
     override fun onCreate(savedInstanceState: Bundle?) {
